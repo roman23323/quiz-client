@@ -12,7 +12,7 @@
    
    git clone https://github.com/roman23323/quiz-client.git
 
-2. Установите Expo Go на смартфое
+2. Установите Expo Go на смартфон
 
 3. Установите зависимости:
 
