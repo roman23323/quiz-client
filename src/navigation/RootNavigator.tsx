@@ -2,6 +2,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useAuthStore } from "../store/auth.store";
 import LoginScreen from "../screens/auth/LoginScreen";
 import HomeScreen from "../screens/home/HomeScreen";
+import LobbyScreen from "../screens/session/LobbyScreen";
 import { useEffect } from "react";
 import { View, ActivityIndicator } from "react-native";
 
@@ -25,7 +26,10 @@ export default function RootNavigator() {
   return (
     <Stack.Navigator>
       {user ? (
-        <Stack.Screen name="Home" component={HomeScreen} />
+        <>
+          <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen name="Lobby" component={LobbyScreen} />
+        </>
       ) : (
         <Stack.Screen name="Login" component={LoginScreen} />
       )}
