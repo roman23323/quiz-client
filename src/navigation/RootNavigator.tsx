@@ -5,6 +5,7 @@ import HomeScreen from "../screens/home/HomeScreen";
 import LobbyScreen from "../screens/session/LobbyScreen";
 import { useEffect } from "react";
 import { View, ActivityIndicator } from "react-native";
+import GameScreen from "../screens/session/GameScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -29,6 +30,7 @@ export default function RootNavigator() {
         <>
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="Lobby" component={LobbyScreen} />
+          <Stack.Screen name="Game" component={GameScreen} />
         </>
       ) : (
         <Stack.Screen name="Login" component={LoginScreen} />
