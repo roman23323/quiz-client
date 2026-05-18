@@ -33,8 +33,10 @@ export default function HomeScreen({ navigation }: any) {
     }
   };
 
-  const startQuiz = (quizId: string) => {
-    navigation.navigate("Lobby", { quizId });
+  const startQuiz = (quiz: Quiz) => {
+    navigation.navigate("QuizDetails", {
+      quiz: quiz,
+    });
   };
 
   const formatDate = (date: string) => {
@@ -55,12 +57,42 @@ export default function HomeScreen({ navigation }: any) {
         Доступные квизы:
       </Text>
 
+      <TouchableOpacity
+        onPress={() => navigation.navigate("CreateQuiz")}
+        style={{
+          padding: 12,
+          backgroundColor: "#4f46e5",
+          borderRadius: 10,
+          marginBottom: 15,
+          alignItems: "center",
+        }}
+      >
+        <Text style={{ color: "white", fontWeight: "600" }}>
+          + Создать квиз
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        onPress={() => navigation.navigate("GenerateQuiz")}
+        style={{
+          padding: 12,
+          backgroundColor: "#7c3aed",
+          borderRadius: 10,
+          marginBottom: 10,
+          alignItems: "center",
+        }}
+      >
+        <Text style={{ color: "white", fontWeight: "600" }}>
+          ✨ Сгенерировать квиз (AI)
+        </Text>
+      </TouchableOpacity>
+
       <FlatList
         data={quizzes}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <TouchableOpacity
-            onPress={() => startQuiz(item.id)}
+            onPress={() => startQuiz(item)}
             style={{
               padding: 15,
               marginBottom: 10,

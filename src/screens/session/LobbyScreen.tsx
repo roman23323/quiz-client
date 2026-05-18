@@ -1,40 +1,75 @@
-import { useState } from "react";
-import { View, Text, Button, ActivityIndicator } from "react-native";
-import { sessionApi } from "../../services/api/session.api";
+import { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  Button,
+} from "react-native";
 
-export default function LobbyScreen({ route, navigation }: any) {
-  const { quizId } = route.params;
+import {
+  socket,
+  connectSocket,
+} from "../../services/socket/socket";
 
-  const [loading, setLoading] = useState(false);
+export default function LobbyScreen({
+  route,
+  navigation,
+}: any) {
+  const { sessionId } = route.params;
 
-  const joinSession = async () => {
-    setLoading(true);
+  const [joinedUsers, setJoinedUsers] =
+    useState<string[]>([]);
 
-    try {
-      const session = await sessionApi.startSolo(quizId);
+  useEffect(() => {
+    init();
+  }, []);
 
+  const init = async () => {
+    await connectSocket();
+
+    socket.emit("session:join", {
+      sessionId,
+    });
+
+    socket.on(
+      "session:joined",
+      ({ userId }) => {
+        setJoinedUsers((prev) => [
+          ...prev,
+          userId,
+        ]);
+      }
+    );
+
+    socket.on("session:started", () => {
       navigation.replace("Game", {
-        sessionId: session.id,
-        quizId,
-        mode: "solo",
+        sessionId,
+        mode: "live_tournament",
       });
-    } catch (e) {
-      console.log("join session error:", e);
-    } finally {
-      setLoading(false);
-    }
+    });
+  };
+
+  const startGame = () => {
+    socket.emit("session:start", {
+      sessionId,
+    });
   };
 
   return (
     <View style={{ padding: 20 }}>
-      <Text style={{ fontSize: 20 }}>Лобби</Text>
-      <Text style={{ marginVertical: 10 }}>ID квиза: {quizId}</Text>
+      <Text style={{ fontSize: 22 }}>
+        Lobby
+      </Text>
 
-      {loading ? (
-        <ActivityIndicator />
-      ) : (
-        <Button title="Начать квиз" onPress={joinSession} />
-      )}
+      <Text>ID сессии: {sessionId}</Text>
+
+      <Text>
+        Players joined: {joinedUsers.length}
+      </Text>
+
+      <Button
+        title="Start game"
+        onPress={startGame}
+      />
     </View>
   );
 }

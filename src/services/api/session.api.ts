@@ -6,6 +6,17 @@ export const sessionApi = {
     return res.data;
   },
 
+  createLiveTournament: async (
+    quizId: string
+  ) => {
+    const res = await api.post("/sessions", {
+      quizId,
+      mode: "live_tournament",
+    });
+
+    return res.data;
+  },
+
   getCurrentQuestion: async (sessionId: string) => {
     const res = await api.get(`/sessions/${sessionId}/current-question`);
     console.log(res.data);

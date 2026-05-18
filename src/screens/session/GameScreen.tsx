@@ -1,100 +1,60 @@
 import { useEffect, useRef, useState } from "react";
 import { View, Text, Button } from "react-native";
-import { sessionApi } from "../../services/api/session.api";
+import { useGameStore } from "../../store/session.store";
+import { socket } from "../../services/socket/socket";
 
-type CurrentQuestionResponse = {
-  sessionId: string;
-  question: {
-    id: string;
-    text: string;
-    questionType: string;
-    points: number;
-    orderIndex: number;
-    options: { id: string; text: string }[];
-  };
-  progress: {
-    current: number;
-    total: number;
-  };
-  timing: {
-    secondsPerQuestion: number;
-  };
-};
+type Option = {
+  id: string;
+  text: string
+}
 
-export default function GameScreen({ route }: any) {
+export default function GameScreen({ route, navigation }: any) {
   const { sessionId, mode } = route.params;
 
-  const [questionData, setQuestionData] =
-    useState<CurrentQuestionResponse | null>(null);
+  const {
+    init,
+    initLive,
+    setupSocketListeners,
+    submitLiveAnswer,
+    questionData,
+    loading,
+    submitAnswer,
+    playersAnswered,
+    isFinished
+  } = useGameStore();
 
-  const [loading, setLoading] = useState(true);
-
-  const questionStartTimeRef = useRef<number>(0);
+  const submit = (optionId: string) => {
+    if (mode === "solo") {
+      submitAnswer(optionId);
+      console.log('Отправляется  solo-ответ');
+    } else {
+      console.log('Отправляется live-ответ');
+      submitLiveAnswer(optionId);
+    }
+  }
 
   useEffect(() => {
-    init();
+    if (mode === "solo") {
+      init(sessionId);
+    } else {
+      initLive(sessionId);
+      setupSocketListeners();
+    }
   }, []);
 
-  const init = async () => {
-    try {
-      const res = await sessionApi.getCurrentQuestion(sessionId);
+  useEffect(() => {
+    return () => {
+      socket.off("session:question");
+      socket.off("session:player-answered");
+      socket.off("session:finished");
+    };
+  }, []);
 
-      if (res.question === null) {
-        await finishSession();
-        return;
-      }
-
-      setQuestionData(res);
-      questionStartTimeRef.current = Date.now();
-    } catch (e) {
-      console.log(e);
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    if (isFinished) {
+      navigation.replace("Result");
     }
-  };
-
-  const loadNext = async () => {
-    const res = await sessionApi.getCurrentQuestion(sessionId);
-
-    if (!res.question) {
-      await finishSession();
-      return;
-    }
-
-    setQuestionData(res);
-    questionStartTimeRef.current = Date.now();
-  };
-
-  const sendAnswer = async (optionId: string) => {
-    if (!questionData) return;
-
-    const responseTimeMs =
-      Date.now() - questionStartTimeRef.current;
-
-    try {
-      const result = await sessionApi.submitAnswer(
-        sessionId,
-        questionData.question.id,
-        optionId,
-        responseTimeMs
-      );
-
-      if (result.finished) {
-        await finishSession();
-        return;
-      }
-
-      await loadNext();
-    } catch (e: any) {
-      console.log(e.message);
-    }
-  };
-
-  const finishSession = async () => {
-    const result = await sessionApi.getResult(sessionId);
-    console.log("RESULT:", result);
-    setQuestionData(null);
-  };
+  }, [isFinished]);
 
   if (loading) {
     return (
@@ -107,7 +67,7 @@ export default function GameScreen({ route }: any) {
   if (!questionData) {
     return (
       <View>
-        <Text>Quiz finished</Text>
+        <Text>Загрузка квиза...</Text>
       </View>
     );
   }
@@ -116,23 +76,21 @@ export default function GameScreen({ route }: any) {
 
   return (
     <View style={{ padding: 20 }}>
-      <Text style={{ marginBottom: 10 }}>
+      <Text>
         Вопрос {progress.current} / {progress.total}
       </Text>
 
-      <Text style={{ marginBottom: 10 }}>
-        Время на ответ: {timing.secondsPerQuestion}с
-      </Text>
+      <Text>Время на ответ: {timing.secondsPerQuestion}s</Text>
 
-      <Text style={{ fontSize: 18, marginBottom: 20 }}>
+      <Text style={{ fontSize: 18, marginVertical: 20 }}>
         {question.text}
       </Text>
 
-      {question.options.map((opt) => (
+      {question.options.map((opt: Option) => (
         <Button
           key={opt.id}
           title={opt.text}
-          onPress={() => sendAnswer(opt.id)}
+          onPress={() => submit(opt.id)}
         />
       ))}
     </View>
