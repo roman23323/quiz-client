@@ -23,7 +23,6 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     try {
       const data = await authApi.login({ name, password });
-
       await login(data.token, data.user);
     } catch (e) {
       console.log("Login error:", e);

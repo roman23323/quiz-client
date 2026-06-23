@@ -197,8 +197,6 @@ export const useGameStore = create<GameState>((set, get) => ({
       questionStartTime,
     } = get();
 
-    console.log("SEND ANSWER");
-
     if (!sessionId || !questionData) return;
 
     const responseTimeMs =

@@ -26,9 +26,7 @@ export default function GameScreen({ route, navigation }: any) {
   const submit = (optionId: string) => {
     if (mode === "solo") {
       submitAnswer(optionId);
-      console.log('Отправляется  solo-ответ');
     } else {
-      console.log('Отправляется live-ответ');
       submitLiveAnswer(optionId);
     }
   }

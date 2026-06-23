@@ -19,7 +19,6 @@ export const sessionApi = {
 
   getCurrentQuestion: async (sessionId: string) => {
     const res = await api.get(`/sessions/${sessionId}/current-question`);
-    console.log(res.data);
     return res.data;
   },
 
