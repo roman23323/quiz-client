@@ -27,7 +27,7 @@ export default function HomeScreen({ navigation }: any) {
       const data = await quizApi.getAllPublic();
       setQuizzes(data);
     } catch (e) {
-      console.log(e);
+      console.log('Quiz load failed:', e);
     } finally {
       setLoading(false);
     }

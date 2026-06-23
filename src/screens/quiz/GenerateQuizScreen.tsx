@@ -15,7 +15,7 @@ export default function GenerateQuizScreen({ navigation }: any) {
       navigation.navigate("QuizDetails", { quiz })
 
     } catch (e) {
-      console.log(e);
+      console.log('Generating quiz failed:', e);
     } finally {
       setLoading(false);
     }

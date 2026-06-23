@@ -14,7 +14,7 @@ export default function CreateQuizScreen({ navigation }: any) {
       await createQuiz();
       navigation.navigate("AddQuestion");
     } catch (e) {
-      console.log(e);
+      console.log('Creating quiz failed:', e);
     } finally {
       setLoading(false);
     }
