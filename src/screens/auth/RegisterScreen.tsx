@@ -6,6 +6,7 @@ import {
   TextInput,
   Button,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
@@ -34,7 +35,12 @@ export default function RegisterScreen() {
 
       await login(userData.token, userData.user);
     } catch (e: any) {
-      console.log("Register error:", e.message);
+      const rawMessage = e.response.data.message ?? 'Неизвестная ошибка';
+      const message = Array.isArray(rawMessage)
+        ? rawMessage.join('\n')
+        : rawMessage;
+
+      Alert.alert('Ошибка регистрации', message);
     }
   };
 

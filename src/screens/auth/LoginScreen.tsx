@@ -6,6 +6,7 @@ import {
   TextInput,
   Button,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
@@ -24,8 +25,8 @@ export default function LoginScreen() {
     try {
       const data = await authApi.login({ name, password });
       await login(data.token, data.user);
-    } catch (e) {
-      console.log("Login error:", e);
+    } catch (e: any) {
+      Alert.alert("Ошибка входа", e.response.data.message);
     }
   };
 
