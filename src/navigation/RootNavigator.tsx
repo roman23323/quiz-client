@@ -12,6 +12,7 @@ import CreateQuizScreen from "../screens/quiz/CreateQuizScreen";
 import AddQuestionsScreen from "../screens/quiz/AddQuestionScreen";
 import GenerateQuizScreen from "../screens/quiz/GenerateQuizScreen";
 import RegisterScreen from "../screens/auth/RegisterScreen";
+import ProfileScreen from "../screens/profile/ProfileScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -35,6 +36,7 @@ export default function RootNavigator() {
 			{user ? (
 				<>
 					<Stack.Screen name="Home" component={HomeScreen} />
+	                <Stack.Screen name="Profile" component={ProfileScreen} />
 					<Stack.Screen name="Lobby" component={LobbyScreen} />
 					<Stack.Screen name="Game" component={GameScreen} />
 					<Stack.Screen name="Result" component={ResultScreen} />

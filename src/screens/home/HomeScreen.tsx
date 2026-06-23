@@ -53,6 +53,19 @@ export default function HomeScreen({ navigation }: any) {
 
   return (
     <View style={{ padding: 20 }}>
+      <TouchableOpacity
+        onPress={() => navigation.navigate("Profile")}
+        style={{
+          padding: 10,
+          backgroundColor: "#111827",
+          borderRadius: 8,
+          marginBottom: 15,
+          alignItems: "center",
+        }}
+      >
+        <Text style={{ color: "white", fontWeight: "600" }}>Профиль</Text>
+      </TouchableOpacity>
+      
       <Text style={{ fontSize: 22, fontWeight: "600", marginBottom: 10 }}>
         Доступные квизы:
       </Text>
