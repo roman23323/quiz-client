@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { View, Text, FlatList, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { quizApi } from "../../services/api/quiz.api";
 import { useAuthStore } from "../../store/auth.store";
 import { useFocusEffect } from '@react-navigation/native';
@@ -64,7 +64,7 @@ export default function HomeScreen({ navigation }: any) {
   }
 
   return (
-    <View style={{ padding: 20 }}>
+    <ScrollView style={{ padding: 20 }}>
       <TouchableOpacity
         onPress={() => navigation.navigate("Profile")}
         style={{
@@ -112,11 +112,9 @@ export default function HomeScreen({ navigation }: any) {
         </Text>
       </TouchableOpacity>
 
-      <FlatList
-        data={quizzes}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <TouchableOpacity
+      {quizzes.map((item, i) => 
+        <TouchableOpacity
+            key={i}
             onPress={() => startQuiz(item)}
             style={{
               padding: 15,
@@ -161,8 +159,7 @@ export default function HomeScreen({ navigation }: any) {
                   </TouchableOpacity>
                 )}
           </TouchableOpacity>
-        )}
-      />
-    </View>
+      )}
+    </ScrollView>
   );
 }
