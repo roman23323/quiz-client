@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { View, Text, FlatList, TouchableOpacity } from "react-native";
 import { quizApi } from "../../services/api/quiz.api";
+import { useAuthStore } from "../../store/auth.store";
 
 type Quiz = {
   id: string;
+  authorId: string;
   title: string;
   description: string;
   secondsPerQuestion: number;
@@ -37,6 +39,12 @@ export default function HomeScreen({ navigation }: any) {
     navigation.navigate("QuizDetails", {
       quiz: quiz,
     });
+  };
+
+  const { user } = useAuthStore();
+
+  const editQuiz = (quiz: Quiz) => {
+    navigation.navigate("AddQuestion", { quizId: quiz.id });
   };
 
   const formatDate = (date: string) => {
@@ -132,6 +140,22 @@ export default function HomeScreen({ navigation }: any) {
             <Text style={{ fontSize: 12, color: "#666" }}>
               Автор: {item.author.name}
             </Text>
+                {user && (item.authorId === user.id || user.role === 'ADMIN') && (
+                  <TouchableOpacity
+                    onPress={() => editQuiz(item)}
+                    style={{
+                      marginTop: 8,
+                      padding: 8,
+                      backgroundColor: "#2563eb",
+                      borderRadius: 8,
+                      alignSelf: "flex-start",
+                    }}
+                  >
+                    <Text style={{ color: "white", fontWeight: "600" }}>
+                      Редактировать
+                    </Text>
+                  </TouchableOpacity>
+                )}
           </TouchableOpacity>
         )}
       />
