@@ -5,6 +5,7 @@ type User = {
   id: string;
   name: string;
   isGuest?: boolean;
+  role: 'USER' | 'ADMIN';
 };
 
 type AuthState = {
