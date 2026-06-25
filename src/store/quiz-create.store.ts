@@ -27,6 +27,7 @@ type QuizCreationState = {
 
   createQuiz: () => Promise<void>;
   addQuestion: (q: QuestionDraft) => Promise<void>;
+  updateQuiz: () => Promise<void>;
 
   reset: () => void;
 };
@@ -54,6 +55,18 @@ export const useQuizCreationStore = create<QuizCreationState>((set, get) => ({
     });
 
     set({ quizId: quiz.id });
+  },
+
+  updateQuiz: async () => {
+    const state = get();
+    if (!state.quizId) return;
+
+    await quizApi.updateQuiz(state.quizId, {
+      title: state.title,
+      description: state.description,
+      visibility: state.visibility,
+      secondsPerQuestion: state.secondsPerQuestion,
+    });
   },
 
   addQuestion: async (q) => {
