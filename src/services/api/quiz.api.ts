@@ -16,8 +16,38 @@ export const quizApi = {
         return res.data;
     },
 
+    deleteQuiz: async (quizId: string) => {
+        const res = await api.delete(`/quizzes/${quizId}`);
+        return res.data;
+    },
+
+    updateQuiz: async (quizId: string | number, payload: Partial<{
+        title: string;
+        description: string;
+        visibility: "public" | "private";
+        secondsPerQuestion: number;
+    }>) => {
+        const res = await api.patch(`/quizzes/${quizId}`, payload);
+        return res.data;
+    },
+
     addQuestion: async (quizId: number, payload: any) => {
         const res = await api.post(`/quizzes/${quizId}/questions`, payload);
+        return res.data;
+    },
+
+    updateQuestion: async (quizId: number, questionId: string | number, payload: any) => {
+        const res = await api.patch(`/quizzes/${quizId}/questions/${questionId}`, payload);
+        return res.data;
+    },
+
+    getQuizForEdit: async (quizId: string | number) => {
+        const res = await api.get(`/quizzes/${quizId}/edit`);
+        return res.data;
+    },
+
+    deleteQuestion: async (quizId: string | number, questionId: string | number) => {
+        const res = await api.delete(`/quizzes/${quizId}/questions/${questionId}`);
         return res.data;
     },
 
