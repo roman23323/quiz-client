@@ -6,12 +6,10 @@ import {
   TouchableOpacity,
   Alert,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
 import { userApi } from "../../services/api/user.api";
 import { useAuthStore } from "../../store/auth.store";
 
-export default function ProfileScreen() {
-  const navigation = useNavigation();
+export default function ProfileScreen({ navigation }: any) {
   const { user, token, login, logout } = useAuthStore();
 
   const [name, setName] = useState(user?.name ?? "");
@@ -19,6 +17,12 @@ export default function ProfileScreen() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    if (!user) {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' }]
+      })
+    }
     const load = async () => {
       try {
         const data = await userApi.getMe();
@@ -29,7 +33,7 @@ export default function ProfileScreen() {
     };
 
     load();
-  }, []);
+  }, [user]);
 
   const handleSave = async () => {
     setLoading(true);
@@ -80,6 +84,15 @@ export default function ProfileScreen() {
   const handleLogout = async () => {
     await logout();
   };
+
+  useEffect(() => {
+    if (!user) {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' }]
+      })
+    }
+  }, [user]);
 
   return (
     <View style={{ padding: 20, gap: 12 }}>

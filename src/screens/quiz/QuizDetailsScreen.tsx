@@ -5,12 +5,15 @@ import {
 } from "react-native";
 
 import { sessionApi } from "../../services/api/session.api";
+import { useAuthStore } from "../../store/auth.store";
 
 export default function QuizDetailsScreen({
   route,
   navigation,
 }: any) {
   const { quiz } = route.params;
+
+  const { user } = useAuthStore();
 
   const playSolo = async () => {
     const session =
@@ -52,18 +55,28 @@ export default function QuizDetailsScreen({
       >
         {quiz.description}
       </Text>
+      {user ? <>
+        <Button
+          title="Play Solo"
+          onPress={playSolo}
+        />
 
-      <Button
-        title="Play Solo"
-        onPress={playSolo}
-      />
+        <View style={{ height: 10 }} />
 
-      <View style={{ height: 10 }} />
-
-      <Button
-        title="Create Live Tournament"
-        onPress={createLiveTournament}
-      />
+        <Button
+          title="Create Live Tournament"
+          onPress={createLiveTournament}
+        />
+      </>
+      : <Text
+          style={{
+            fontSize: 24,
+            marginBottom: 10,
+          }}
+        >
+          Войдите в аккаунт, чтобы продолжить
+        </Text>  
+      }
     </View>
   );
 }

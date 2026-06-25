@@ -75,7 +75,7 @@ export default function HomeScreen({ navigation }: any) {
           alignItems: "center",
         }}
       >
-        <Text style={{ color: "white", fontWeight: "600" }}>Профиль</Text>
+        <Text style={{ color: "white", fontWeight: "600" }}>{ user ? 'Профиль' : 'Войти в аккаунт' }</Text>
       </TouchableOpacity>
       
       <Text style={{ fontSize: 22, fontWeight: "600", marginBottom: 10 }}>

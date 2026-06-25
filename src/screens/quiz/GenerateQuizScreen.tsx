@@ -1,10 +1,22 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { View, Text, TextInput, TouchableOpacity } from "react-native";
 import { quizApi } from "../../services/api/quiz.api";
+import { useAuthStore } from "../../store/auth.store";
 
 export default function GenerateQuizScreen({ navigation }: any) {
   const [topic, setTopic] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const { user } = useAuthStore();
+
+  useEffect(() => {
+		if (!user) {
+			navigation.reset({
+				index: 0,
+				routes: [{ name: 'Login' }]
+			})
+		}
+  }, [user]);
 
   const handleGenerate = async () => {
     try {

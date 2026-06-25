@@ -1,5 +1,5 @@
 // screens/auth/LoginScreen.tsx
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -8,14 +8,11 @@ import {
   TouchableOpacity,
   Alert,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
 
 import { authApi } from "../../services/api/auth.api";
 import { useAuthStore } from "../../store/auth.store";
 
-export default function LoginScreen() {
-  const navigation = useNavigation();
-
+export default function LoginScreen({ navigation }: any) {
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
 
@@ -29,6 +26,17 @@ export default function LoginScreen() {
       Alert.alert("Ошибка входа", e.response.data.message);
     }
   };
+
+  const { user } = useAuthStore();
+
+  useEffect(() => {
+    if (user) {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Home' }]
+      })
+    }
+  }, [user]);
 
   return (
     <View style={{ padding: 20, gap: 12 }}>

@@ -1,5 +1,5 @@
 // screens/auth/RegisterScreen.tsx
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -8,13 +8,11 @@ import {
   TouchableOpacity,
   Alert,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
 
 import { authApi } from "../../services/api/auth.api";
 import { useAuthStore } from "../../store/auth.store";
 
-export default function RegisterScreen() {
-  const navigation = useNavigation();
+export default function RegisterScreen({ navigation }: any) {
 
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
@@ -43,6 +41,17 @@ export default function RegisterScreen() {
       Alert.alert('Ошибка регистрации', message);
     }
   };
+
+  const { user } = useAuthStore();
+
+  useEffect(() => {
+    if (user) {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Home' }]
+      })
+    }
+  }, [user]);
 
   return (
     <View style={{ padding: 20, gap: 12 }}>

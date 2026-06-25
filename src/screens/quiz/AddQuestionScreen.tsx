@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { useQuizCreationStore } from "../../store/quiz-create.store";
 import { quizApi } from "../../services/api/quiz.api";
+import { useAuthStore } from "../../store/auth.store";
 
 type Option = {
 	text: string;
@@ -45,7 +46,16 @@ export default function AddQuestionsScreen({ navigation, route }: any) {
 		{ text: "", isCorrect: false },
 	]);
 
+	const { user } = useAuthStore();
+
 	useEffect(() => {
+		if (!user) {
+			navigation.reset({
+				index: 0,
+				routes: [{ name: 'Login' }]
+			})
+		}
+		
 		if (!isEditMode) return;
 
 		const load = async () => {
@@ -69,7 +79,7 @@ export default function AddQuestionsScreen({ navigation, route }: any) {
 		};
 
 		load();
-	}, [isEditMode, quizId]);
+	}, [isEditMode, quizId, user]);
 
 	const handleFinish = () => {
 		reset();

@@ -32,28 +32,21 @@ export default function RootNavigator() {
 	}
 
 	return (
-		<Stack.Navigator>
-			{user ? (
-				<>
-					<Stack.Screen name="Home" component={HomeScreen} />
-	                <Stack.Screen name="Profile" component={ProfileScreen} />
-					<Stack.Screen name="Lobby" component={LobbyScreen} />
-					<Stack.Screen name="Game" component={GameScreen} />
-					<Stack.Screen name="Result" component={ResultScreen} />
-					<Stack.Screen name="CreateQuiz" component={CreateQuizScreen} />
-					<Stack.Screen name="AddQuestion" component={AddQuestionsScreen} />
-					<Stack.Screen name="GenerateQuiz" component={GenerateQuizScreen} />
-					<Stack.Screen
-						name="QuizDetails"
-						component={QuizDetailsScreen}
-					/>
-				</>
-			) : (
-				<>
-					<Stack.Screen name="Login" component={LoginScreen} />
-					<Stack.Screen name="Register" component={RegisterScreen} />
-				</>
-			)}
+		<Stack.Navigator initialRouteName="Home">
+			<Stack.Screen name="Profile" component={ProfileScreen} />
+			<Stack.Screen name="Lobby" component={LobbyScreen} />
+			<Stack.Screen name="Game" component={GameScreen} />
+			<Stack.Screen name="Result" component={ResultScreen} />
+			<Stack.Screen name="CreateQuiz" component={CreateQuizScreen} />
+			<Stack.Screen name="AddQuestion" component={AddQuestionsScreen} />
+			<Stack.Screen name="GenerateQuiz" component={GenerateQuizScreen} />
+			<Stack.Screen name="Login" component={LoginScreen} />
+			<Stack.Screen name="Register" component={RegisterScreen} />
+			<Stack.Screen name="Home" component={HomeScreen} />
+			<Stack.Screen
+				name="QuizDetails"
+				component={QuizDetailsScreen}
+			/>
 		</Stack.Navigator>
 	);
 }

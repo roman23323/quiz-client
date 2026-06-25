@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { View, Text, TextInput, TouchableOpacity } from "react-native";
 import { useQuizCreationStore } from "../../store/quiz-create.store";
 import { quizApi } from "../../services/api/quiz.api";
+import { useAuthStore } from "../../store/auth.store";
 
 export default function CreateQuizScreen({ navigation, route }: any) {
   const { setBaseInfo, createQuiz, title, description, secondsPerQuestion } =
@@ -11,7 +12,16 @@ export default function CreateQuizScreen({ navigation, route }: any) {
 
   const quizId = route?.params?.quizId ?? null;
 
+	const { user } = useAuthStore();
+
   useEffect(() => {
+		if (!user) {
+			navigation.reset({
+				index: 0,
+				routes: [{ name: 'Login' }]
+			})
+		}
+    
     if (!quizId) return;
 
     let mounted = true;
@@ -37,7 +47,7 @@ export default function CreateQuizScreen({ navigation, route }: any) {
     return () => {
       mounted = false;
     };
-  }, [quizId, setBaseInfo]);
+  }, [quizId, setBaseInfo, user]);
 
   const handleCreate = async () => {
     try {
