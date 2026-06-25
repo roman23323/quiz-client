@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
 	View,
 	Text,
@@ -8,14 +8,32 @@ import {
 	ScrollView,
 } from "react-native";
 import { useQuizCreationStore } from "../../store/quiz-create.store";
+import { quizApi } from "../../services/api/quiz.api";
 
 type Option = {
 	text: string;
 	isCorrect: boolean;
 };
 
-export default function AddQuestionsScreen({ navigation }: any) {
+type RemoteOption = Option & { id?: string | number };
+
+type RemoteQuestion = {
+	id: string | number;
+	text: string;
+	points: number;
+	options: RemoteOption[];
+	orderIndex?: number;
+};
+
+export default function AddQuestionsScreen({ navigation, route }: any) {
 	const { addQuestion, questions, reset } = useQuizCreationStore();
+
+	const quizId = route?.params?.quizId;
+	const isEditMode = Boolean(quizId);
+
+	const [remoteQuestions, setRemoteQuestions] = useState<RemoteQuestion[]>([]);
+	const [loadingRemote, setLoadingRemote] = useState(false);
+	const [editingQuestionId, setEditingQuestionId] = useState<string | number | null>(null);
 
 	const [text, setText] = useState("");
 	const [points, setPoints] = useState("1");
@@ -27,9 +45,49 @@ export default function AddQuestionsScreen({ navigation }: any) {
 		{ text: "", isCorrect: false },
 	]);
 
+	useEffect(() => {
+		if (!isEditMode) return;
+
+		const load = async () => {
+			try {
+				setLoadingRemote(true);
+				const data = await quizApi.getQuizForEdit(quizId);
+				setRemoteQuestions(
+					data.questions.map((q: any, i: number) => ({
+						id: q.id,
+						text: q.text,
+						points: q.points,
+						options: q.options || [],
+						orderIndex: q.orderIndex ?? i,
+					}))
+				);
+			} catch (e) {
+				console.log("Failed load questions:", e);
+			} finally {
+				setLoadingRemote(false);
+			}
+		};
+
+		load();
+	}, [isEditMode, quizId]);
+
 	const handleFinish = () => {
 		reset();
 		navigation.popToTop();
+	};
+
+	const handleDeleteQuiz = () => {
+		if (!quizId) return;
+
+		(async () => {
+			try {
+				await quizApi.deleteQuiz(String(quizId));
+				reset();
+				navigation.popToTop();
+			} catch (e: any) {
+				console.log("Failed to delete quiz:", e.response.data.message);
+			}
+		})();
 	};
 
 	const toggleCorrect = (index: number) => {
@@ -48,12 +106,32 @@ export default function AddQuestionsScreen({ navigation }: any) {
 	};
 
 	const handleAddQuestion = async () => {
-		await addQuestion({
-			text,
-			questionType: "single_choice",
-			points: Number(points),
-			options,
-		});
+		if (isEditMode) {
+			const stateOptions = options.map((o, i) => ({ ...o, orderIndex: i }));
+			const payload = {
+				text,
+				questionType: "single_choice",
+				points: Number(points),
+				orderIndex: remoteQuestions.length,
+				options: stateOptions,
+			};
+
+			try {
+				await quizApi.addQuestion(quizId, payload);
+				// refresh list
+				const data = await quizApi.getQuizForEdit(quizId);
+				setRemoteQuestions(data.questions.map((q: any) => ({ id: q.id, text: q.text, points: q.points, options: q.options || [] })));
+			} catch (e) {
+				console.log("Failed to add question:", e);
+			}
+		} else {
+			await addQuestion({
+				text,
+				questionType: "single_choice",
+				points: Number(points),
+				options,
+			});
+		}
 
 		setText("");
 		setPoints("1");
@@ -63,6 +141,57 @@ export default function AddQuestionsScreen({ navigation }: any) {
 			{ text: "", isCorrect: false },
 			{ text: "", isCorrect: false },
 		]);
+		setEditingQuestionId(null);
+	};
+
+	const handleDeleteRemote = async (questionId: string | number) => {
+		if (!quizId) return;
+		try {
+			await quizApi.deleteQuestion(quizId, questionId);
+			setRemoteQuestions((prev) => prev.filter((q) => q.id !== questionId));
+		} catch (e) {
+			console.log("Failed to delete question:", e);
+		}
+	};
+
+	const handleStartEditRemote = (q: RemoteQuestion) => {
+		setEditingQuestionId(q.id);
+		setText(q.text);
+		setPoints(String(q.points ?? 1));
+		setOptions(
+			q.options.map((o) => ({ text: o.text || "", isCorrect: !!o.isCorrect })) as Option[]
+		);
+	};
+
+	const handleSaveEditRemote = async () => {
+		if (!quizId || editingQuestionId == null) return;
+		const payload = {
+			text,
+			questionType: "single_choice",
+			points: Number(points),
+			orderIndex: remoteQuestions.length,
+			options: options.map((o, i) => ({ ...o, orderIndex: i })),
+		};
+
+		try {
+			const existingIndex = remoteQuestions.findIndex((rq) => rq.id === editingQuestionId);
+			const questionOrderIndex = existingIndex >= 0 ? existingIndex : 0;
+			const payloadWithOrderIndex = { ...payload, orderIndex: questionOrderIndex };
+			await quizApi.updateQuestion(quizId, editingQuestionId, payloadWithOrderIndex);
+			const data = await quizApi.getQuizForEdit(quizId);
+			setRemoteQuestions(data.questions.map((q: any, i: number) => ({ id: q.id, text: q.text, points: q.points, options: q.options || [], orderIndex: q.orderIndex ?? i })));
+			setEditingQuestionId(null);
+			setText("");
+			setPoints("1");
+			setOptions([
+				{ text: "", isCorrect: false },
+				{ text: "", isCorrect: false },
+				{ text: "", isCorrect: false },
+				{ text: "", isCorrect: false },
+			]);
+		} catch (e: any) {
+			console.log("Failed to save edit:", e.response?.data?.message ?? e.message);
+		}
 	};
 
 	return (
@@ -73,6 +202,22 @@ export default function AddQuestionsScreen({ navigation }: any) {
 			<Text style={{ fontSize: 20, fontWeight: "600" }}>
 				Добавление вопросов
 			</Text>
+
+			{isEditMode && (
+				<TouchableOpacity
+					onPress={() => navigation.navigate("CreateQuiz", { quizId })}
+					style={{
+						backgroundColor: "#2563eb",
+						padding: 8,
+						borderRadius: 8,
+						marginTop: 12,
+					}}
+				>
+					<Text style={{ color: "white", textAlign: "center" }}>
+						Редактировать квиз
+					</Text>
+				</TouchableOpacity>
+			)}
 
 			<TextInput
 				placeholder="Текст вопроса"
@@ -116,7 +261,7 @@ export default function AddQuestionsScreen({ navigation }: any) {
 			))}
 
 			<TouchableOpacity
-				onPress={handleAddQuestion}
+				onPress={editingQuestionId ? handleSaveEditRemote : handleAddQuestion}
 				style={{
 					backgroundColor: "#16a34a",
 					padding: 12,
@@ -125,45 +270,94 @@ export default function AddQuestionsScreen({ navigation }: any) {
 				}}
 			>
 				<Text style={{ color: "white", textAlign: "center" }}>
-					Добавить вопрос
+					{editingQuestionId ? "Сохранить изменения" : "Добавить вопрос"}
 				</Text>
 			</TouchableOpacity>
 
 			<Text style={{ marginTop: 30, fontWeight: "600" }}>
-				Уже добавлено: {questions.length}
+				{isEditMode ? `Вопросов: ${remoteQuestions.length}` : `Уже добавлено: ${questions.length}`}
 			</Text>
-
-			<FlatList
-				data={questions}
-				keyExtractor={(_, i) => String(i)}
-				renderItem={({ item, index }) => (
-					<View
-						style={{
-							marginTop: 10,
-							padding: 10,
-							backgroundColor: "#f3f4f6",
-							borderRadius: 8,
-						}}
-					>
-						<Text>
-							{index + 1}. {item.text}
-						</Text>
-					</View>
-				)}
-			/>
-			<TouchableOpacity
-				onPress={handleFinish}
-				style={{
-					backgroundColor: "#dc2626",
-					padding: 12,
-					borderRadius: 10,
-					marginTop: 30,
-				}}
-			>
-				<Text style={{ color: "white", textAlign: "center" }}>
-					Завершить квиз
-				</Text>
-			</TouchableOpacity>
+			{isEditMode ? (
+				<FlatList
+					data={remoteQuestions}
+					keyExtractor={(it) => String(it.id)}
+					renderItem={({ item, index }) => (
+						<View
+							style={{
+								marginTop: 10,
+								padding: 10,
+								backgroundColor: "#f3f4f6",
+								borderRadius: 8,
+							}}
+						>
+							<Text>
+								{index + 1}. {item.text}
+							</Text>
+							<View style={{ flexDirection: "row", marginTop: 8 }}>
+								<TouchableOpacity
+									onPress={() => handleStartEditRemote(item)}
+									style={{ marginRight: 10, padding: 6, backgroundColor: "#2563eb", borderRadius: 6 }}
+								>
+									<Text style={{ color: "white" }}>Ред.</Text>
+								</TouchableOpacity>
+								<TouchableOpacity
+									onPress={() => handleDeleteRemote(item.id)}
+									style={{ padding: 6, backgroundColor: "#dc2626", borderRadius: 6 }}
+								>
+									<Text style={{ color: "white" }}>Удалить</Text>
+								</TouchableOpacity>
+							</View>
+						</View>
+					)}
+				/>
+			) : (
+				<FlatList
+					data={questions}
+					keyExtractor={(_, i) => String(i)}
+					renderItem={({ item, index }) => (
+						<View
+							style={{
+								marginTop: 10,
+								padding: 10,
+								backgroundColor: "#f3f4f6",
+								borderRadius: 8,
+							}}
+						>
+							<Text>
+								{index + 1}. {item.text}
+							</Text>
+						</View>
+					)}
+				/>
+			)}
+			<View>
+				<TouchableOpacity
+					onPress={handleFinish}
+					style={{
+						backgroundColor: "#3bdc26",
+						padding: 12,
+						borderRadius: 10,
+						marginTop: 30,
+					}}
+				>
+					<Text style={{ color: "white", textAlign: "center" }}>
+						Завершить квиз
+					</Text>
+				</TouchableOpacity>
+				<TouchableOpacity
+					onPress={handleDeleteQuiz}
+					style={{
+						backgroundColor: "#dc2626",
+						padding: 12,
+						borderRadius: 10,
+						marginTop: 30,
+					}}
+				>
+					<Text style={{ color: "white", textAlign: "center" }}>
+						Удалить квиз
+					</Text>
+				</TouchableOpacity>
+			</View>
 		</ScrollView>
 	);
 }
