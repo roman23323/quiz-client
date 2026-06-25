@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useState, useCallback } from "react";
 import { View, Text, FlatList, TouchableOpacity } from "react-native";
 import { quizApi } from "../../services/api/quiz.api";
 import { useAuthStore } from "../../store/auth.store";
+import { useFocusEffect } from '@react-navigation/native';
 
 type Quiz = {
   id: string;
@@ -20,11 +21,7 @@ export default function HomeScreen({ navigation }: any) {
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadQuizzes();
-  }, []);
-
-  const loadQuizzes = async () => {
+  const loadQuizzes = useCallback(async () => {
     try {
       const data = await quizApi.getAllPublic();
       setQuizzes(data);
@@ -33,7 +30,14 @@ export default function HomeScreen({ navigation }: any) {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      setLoading(true);
+      loadQuizzes();
+    }, [loadQuizzes])
+  );
 
   const startQuiz = (quiz: Quiz) => {
     navigation.navigate("QuizDetails", {
